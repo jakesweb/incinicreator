@@ -17,7 +17,7 @@ The platform will extensively use the web monetization standard to allow for pay
 
 The project is a work in progress and as I create more documentation this page will be updated. For now the stack will be:
 
-Vue.js
-Express
-MongoDB (accessed through Mongoose)
-Auth0 (for authentication)
+- Vue.js
+- Express
+- MongoDB (accessed through Mongoose)
+- Auth0 (for authentication)
