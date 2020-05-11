@@ -7,7 +7,10 @@
       <div class="navbar-start">
         <router-link to="/" class="navbar-item">Home</router-link>
         <router-link to="/about" class="navbar-item">About</router-link>
-        <router-link v-if="$auth.isAuthenticated" to="/edit" class="navbar-item">Edit</router-link>
+        <router-link v-if="$auth.isAuthenticated" to="/manage" class="navbar-item"
+          >Manage My Site</router-link
+        >
+        <router-link v-if="$auth.isAuthenticated" to="/help" class="navbar-item">Help</router-link>
       </div>
     </div>
     <div class="navbar-end">
