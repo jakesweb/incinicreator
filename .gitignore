@@ -2,8 +2,10 @@
 node_modules
 /dist
 auth_config.json
+app_config.json
 
 # local env files
+.env
 .env.local
 .env.*.local
 

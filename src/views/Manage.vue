@@ -1,9 +1,9 @@
 <template>
   <div class="manage">
-    <h1 class="title">Create your site</h1>
-    <form>
+    <form id="initialSetup" @submit.prevent="onSubmit" v-if="!clientSiteConfig">
+      <h1 class="title">Create your site</h1>
       <label for="title" class="label">Title</label>
-      <input type="text" name="title" id="title" class="input" />
+      <input type="text" name="title" id="title" class="input" v-model="title" />
       <label for="customSub" class="label">Custom Subdomain</label>
       <input
         type="text"
@@ -11,10 +11,11 @@
         id="customSub"
         placeholder="Leave blank to auto-generate. This can be changed later."
         class="input"
+        v-model="subdomain"
         required
       />
       <label for="content" class="label">What kind of content do you want to share?</label>
-      <select id="content" name="content" class="input">
+      <select id="content" name="content" class="input" v-model="content">
         <option value="blog">Blog</option>
         <option value="art">Art</option>
         <option value="comic">Comic</option>
@@ -27,16 +28,62 @@
         name="webMonetization"
         placeholder="If you are not sure about what this is, please visit the Help link at the tope of the page"
         class="input"
+        v-model="webMonetization"
         required
       />
-      <input type="submit" id="submit" name="submit" value="Select a Template" class="button" />
+      <input
+        type="submit"
+        id="submit"
+        name="submit"
+        value="Select a Template"
+        class="button"
+        v-on:
+      />
+    </form>
+    <form id="chooseTemplate" v-if="!templateConfig && clientSiteConfig">
+      <h1 class="title">Choose your template</h1>
+      <label for="test">Test</label>
+      <input type="text" id="test" name="test" />
     </form>
   </div>
 </template>
 
 <script>
 export default {
-  name: "Manage"
+  name: "Manage",
+  data: function() {
+    return {
+      clientSiteConfig: false,
+      templateConfig: false,
+      title: "",
+      subdomain: "",
+      content: "",
+      webMonetization: ""
+    };
+  },
+  created: async function() {
+    const token = await this.$auth.getTokenSilently();
+
+    let response = await fetch("http://localhost:3000/api/getsiteconfig", {
+      method: "get",
+      headers: new Headers({ Authorization: `Bearer ${token}` })
+    });
+
+    let clientSite = await response.text();
+
+    console.log(response);
+    // if (clientSite) {
+    //   clientSiteConfig: true;
+    // }
+  },
+  methods: {
+    onSubmit(e) {
+      e.preventDefault();
+      const user = $auth.user;
+      console.log(title.value, subdomain.value, user);
+      this.clientSiteConfig = true;
+    }
+  }
 };
 </script>
 
