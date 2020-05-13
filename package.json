@@ -20,6 +20,7 @@
     "express-jwt": "^5.3.3",
     "jwks-rsa": "^1.8.0",
     "mongoose": "^5.9.13",
+    "node-fetch": "^2.6.0",
     "nodemon": "^2.0.3",
     "vue": "^2.6.11",
     "vue-router": "^3.1.6"

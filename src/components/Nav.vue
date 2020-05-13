@@ -10,6 +10,9 @@
         <router-link v-if="$auth.isAuthenticated" to="/manage" class="navbar-item"
           >Manage My Site</router-link
         >
+        <router-link v-if="$auth.isAuthenticated" to="/upload" class="navbar-item"
+          >Upload</router-link
+        >
         <router-link v-if="$auth.isAuthenticated" to="/help" class="navbar-item">Help</router-link>
       </div>
     </div>

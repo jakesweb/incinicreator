@@ -30,6 +30,12 @@ const routes = [
     path: "/help",
     name: "Help",
     component: () => import("../views/Help.vue")
+  },
+  {
+    path: "/upload",
+    name: "Upload",
+    component: () => import("../views/Upload.vue"),
+    beforeEnter: authGuard
   }
 ];
 

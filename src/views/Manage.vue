@@ -11,7 +11,7 @@
         id="customSub"
         placeholder="Leave blank to auto-generate. This can be changed later."
         class="input"
-        v-model="subdomain"
+        v-model="customSub"
         required
       />
       <label for="content" class="label">What kind of content do you want to share?</label>
@@ -56,9 +56,10 @@ export default {
       clientSiteConfig: false,
       templateConfig: false,
       title: "",
-      subdomain: "",
+      customSub: "",
       content: "",
-      webMonetization: ""
+      webMonetization: "",
+      user: this.$auth.user
     };
   },
   created: async function() {
@@ -66,22 +67,41 @@ export default {
 
     let response = await fetch("http://localhost:3000/api/getsiteconfig", {
       method: "get",
-      headers: new Headers({ Authorization: `Bearer ${token}` })
+      headers: new Headers({ Authorization: `Bearer ${token}`, Email: this.user.email })
     });
 
-    let clientSite = await response.text();
+    let clientSite = await response.json();
 
-    console.log(response);
-    // if (clientSite) {
-    //   clientSiteConfig: true;
-    // }
+    if (clientSite.title && clientSite.webMonetization) {
+      this.clientSiteConfig = true;
+    }
   },
   methods: {
-    onSubmit(e) {
+    async onSubmit(e) {
       e.preventDefault();
-      const user = $auth.user;
-      console.log(title.value, subdomain.value, user);
-      this.clientSiteConfig = true;
+      const token = await this.$auth.getTokenSilently();
+
+      const submitForm = await fetch("http://localhost:3000/api/setsiteconfig", {
+        method: "post",
+        headers: {
+          Accept: "applicaion/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email: this.user.email,
+          title: title.value,
+          customSub: customSub.value,
+          content: content.value,
+          webMonetization: webMonetization.value
+        })
+      });
+
+      const response = await submitForm.json();
+
+      if (response.message) {
+        this.clientSiteConfig = true;
+      }
     }
   }
 };
