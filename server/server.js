@@ -5,13 +5,15 @@ const cookieParser = require("cookie-parser");
 const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 const cors = require("cors");
-const fetch = require("node-fetch");
 const mongoose = require("mongoose");
+const formidable = require("formidable");
+const { Storage } = require("@google-cloud/storage");
 
 const corsOptions = {
   origin: "http://localhost:8080"
 };
 
+// express configuration
 const app = express();
 app.use(bodyParser());
 app.use(cookieParser());
@@ -36,9 +38,11 @@ const checkJwt = jwt({
   algorithm: ["RS256"]
 });
 
+// mongodb config
 const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 
+// web site configuration schema
 const SiteConfigSchema = new Schema({
   id: ObjectId,
   user: { type: String, unique: true },
@@ -50,9 +54,13 @@ const SiteConfigSchema = new Schema({
   template: { type: Boolean, default: false }
 });
 
+// web site configuration model
 const SiteConfig = mongoose.model("SiteConfig", SiteConfigSchema);
 
 mongoose.connect(process.env.MONGO_URI);
+
+// gcp storage config
+const storage = new Storage({ keyFilename: "../gcp-access.json" });
 
 app.post("/api/setsiteconfig", checkJwt, (req, res) => {
   console.log(req.user.sub);
@@ -90,6 +98,36 @@ app.get("/api/getsiteconfig", checkJwt, (req, res) => {
       );
     } else {
       res.send("ERROR");
+    }
+  });
+});
+
+app.post("/api/uploadfile", checkJwt, (req, res) => {
+  var form = new formidable();
+  form.parse(req, async (err, fields, file) => {
+    if (err) {
+      res.send("Error");
+    } else {
+      await storage.bucket(process.env.GCP_BUCKET).upload(file.path, {
+        gzip: true,
+        metdata: {
+          name: name,
+          userOwner: req.user.sub
+        }
+      });
+
+      console.log(`${file} uploaded`);
+    }
+  });
+});
+
+app.get("/api/listfile", checkJwt, async (req, res) => {
+  const [files] = await storage.bucket(process.env.GCP_BUCKET).getFiles();
+  const userFiles = [];
+
+  files.forEach(file => {
+    if (file.metadata.userOwner === req.user.sub) {
+      userFiles.push(file);
     }
   });
 });

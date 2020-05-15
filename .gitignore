@@ -3,6 +3,7 @@ node_modules
 /dist
 auth_config.json
 app_config.json
+gcp-access.json
 
 # local env files
 .env
