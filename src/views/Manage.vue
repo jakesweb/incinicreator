@@ -36,7 +36,7 @@
         id="submit"
         name="submit"
         value="Select a Template"
-        class="button"
+        class="button is-primary"
         v-on:
       />
     </form>
