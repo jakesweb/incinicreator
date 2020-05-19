@@ -50,7 +50,6 @@ export default {
       const token = await this.$auth.getTokenSilently();
       const file = e.target.files;
       const formData = new FormData(e.target);
-      console.log(formData);
 
       fetch("http://localhost:3000/api/uploadfile", {
         method: "post",

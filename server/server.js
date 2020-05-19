@@ -6,8 +6,9 @@ const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const formidable = require("formidable");
-const { Storage } = require("@google-cloud/storage");
+const busboy = require("connect-busboy");
+const fs = require("fs");
+const AWS = require("aws-sdk");
 
 const corsOptions = {
   origin: "http://localhost:8080"
@@ -15,6 +16,7 @@ const corsOptions = {
 
 // express configuration
 const app = express();
+app.use(busboy());
 app.use(bodyParser());
 app.use(cookieParser());
 app.use(cors(corsOptions));
@@ -57,11 +59,27 @@ const SiteConfigSchema = new Schema({
 // web site configuration model
 const SiteConfig = mongoose.model("SiteConfig", SiteConfigSchema);
 
+// content storage configuration
+const ContentUploadSchema = new Schema({
+  id: ObjectId,
+  user: String,
+  title: String,
+  description: String,
+  location: String,
+  monetized: Boolean
+});
+
+const ContentUpload = mongoose.model("ContentUpload", ContentUploadSchema);
+
 mongoose.connect(process.env.MONGO_URI);
 
-// gcp storage config
-const storage = new Storage({ keyFilename: "../gcp-access.json" });
+// aws s3 configuration
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_ID,
+  secretAccessKey: process.env.AWS_ACCESS_KEY
+});
 
+// ROUTES
 app.post("/api/setsiteconfig", checkJwt, (req, res) => {
   console.log(req.user.sub);
 
@@ -103,33 +121,49 @@ app.get("/api/getsiteconfig", checkJwt, (req, res) => {
 });
 
 app.post("/api/uploadfile", checkJwt, (req, res) => {
-  var form = new formidable();
-  form.parse(req, async (err, fields, file) => {
-    if (err) {
-      res.send("Error");
-    } else {
-      await storage.bucket(process.env.GCP_BUCKET).upload(file.path, {
-        gzip: true,
-        metdata: {
-          name: name,
-          userOwner: req.user.sub
-        }
-      });
+  let title = null,
+    description = null,
+    monetization = false;
 
-      console.log(`${file} uploaded`);
+  req.pipe(req.busboy);
+
+  req.busboy.on("field", (field, value) => {
+    switch (field) {
+      case "title":
+        title = value;
+        break;
+      case "description":
+        description = value;
+        break;
+      case "premium":
+        monetization = true;
+        break;
     }
+  });
+
+  req.busboy.on("file", (fields, file, filename) => {
+    s3.upload({ Bucket: process.env.AWS_BUCKET, Key: `${req.user.sub}-${filename}`, Body: file })
+      .promise()
+      .then(data => {
+        const contentUpload = new ContentUpload({
+          user: req.user.sub,
+          title: title,
+          description: description,
+          monetized: monetization,
+          location: data.Location
+        });
+
+        contentUpload.save(error => {
+          if (error) {
+            console.log(error);
+          }
+        });
+      });
   });
 });
 
 app.get("/api/listfile", checkJwt, async (req, res) => {
-  const [files] = await storage.bucket(process.env.GCP_BUCKET).getFiles();
-  const userFiles = [];
-
-  files.forEach(file => {
-    if (file.metadata.userOwner === req.user.sub) {
-      userFiles.push(file);
-    }
-  });
+  res.send("Alive");
 });
 
 app.listen(process.env.PORT || 3000);
