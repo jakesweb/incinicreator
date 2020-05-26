@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const busboy = require("connect-busboy");
 const fs = require("fs");
 const AWS = require("aws-sdk");
+const fetch = require("node-fetch");
 
 const corsOptions = {
   origin: "http://localhost:8080"
@@ -94,6 +95,17 @@ app.post("/api/setsiteconfig", checkJwt, (req, res) => {
   siteConfig.save(error => {
     if (!error) {
       res.send(JSON.stringify({ message: "success" }));
+      // create sanityio dataset for the user
+      fetch(`https://api.sanity.io/v1/projects/cxh0b0lr/datasets/${req.body.customSub}`, {
+        method: "PUT",
+        body: '{\n\t"aclMode": "private"\n}',
+        headers: {
+          Authorization: `Bearer ${process.env.SANITY_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      })
+        .then(response => console.log(response))
+        .then(data => console.log(data));
     } else {
       res.send(JSON.stringify({ error: error }));
     }
@@ -162,7 +174,7 @@ app.post("/api/uploadfile", checkJwt, (req, res) => {
   });
 });
 
-app.get("/api/listfile", checkJwt, async (req, res) => {
+app.get("/api/listfiles", checkJwt, async (req, res) => {
   res.send("Alive");
 });
 
