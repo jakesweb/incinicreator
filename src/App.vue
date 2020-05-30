@@ -2,6 +2,9 @@
   <div id="app">
     <Nav />
     <router-view />
+    <div>
+      <p>Your one stop for creating beautiful monetized web pages.</p>
+    </div>
   </div>
 </template>
 
@@ -11,8 +14,8 @@ import Nav from "./components/Nav.vue";
 export default {
   name: "app",
   components: {
-    Nav
-  }
+    Nav,
+  },
 };
 </script>
 
