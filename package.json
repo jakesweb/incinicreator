@@ -11,6 +11,7 @@
   "dependencies": {
     "@auth0/auth0-spa-js": "^1.8.1",
     "@google-cloud/storage": "^5.0.0",
+    "@sanity/client": "^1.149.13",
     "aws-sdk": "^2.679.0",
     "body-parser": "^1.19.0",
     "bulma": "^0.8.2",

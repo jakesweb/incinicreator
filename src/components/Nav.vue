@@ -3,7 +3,7 @@
     <div class="navbar-brand">
       <p class="navbar-item"><strong class="is-size-4">Incinicreator</strong></p>
     </div>
-    <div class="navbar-menu">
+    <div class="navbar">
       <div class="navbar-start">
         <router-link to="/" class="navbar-item">Home</router-link>
         <router-link to="/about" class="navbar-item">About</router-link>
@@ -49,8 +49,8 @@ export default {
 
 <style lang="scss" scoped>
 nav {
-  margin-top: 25px;
-  margin-bottom: 30px;
+  margin-top: 3%;
+  margin-bottom: 5%;
   a {
     font-weight: bold;
     color: #2c3e50;
