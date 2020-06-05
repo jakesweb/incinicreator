@@ -14,7 +14,15 @@
       >Monetized?
       <input type="checkbox" name="premium" id="premium" class="move-right checkbox" />
     </label>
-    <div class="file has-name">
+    <label for="fileType" class="dropdown label fileselect">
+      Contet Type to Upload
+      <select id="fileType" name="fileType" class="input" v-model="fileType" @change="onChange">
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+        <option value="text">Text</option>
+      </select>
+    </label>
+    <div class="file has-name" v-if="setFileType">
       <label class="file-label">
         <input class="file-input" type="file" name="resume" @change="onFileChange" />
         <span class="file-cta">
@@ -39,7 +47,9 @@ export default {
   name: "Upload",
   data: function() {
     return {
-      fileName: ""
+      fileName: "",
+      fileType: "",
+      setFileType: false
     };
   },
   methods: {
@@ -51,7 +61,7 @@ export default {
       const file = e.target.files;
       const formData = new FormData(e.target);
 
-      fetch("http://localhost:3000/api/uploadfile", {
+      fetch(`http://localhost:3000/api/upload${this.fileType.toLowerCase()}`, {
         method: "post",
         headers: {
           Authorization: `Bearer ${token}`
@@ -62,6 +72,9 @@ export default {
         .then(data => {
           alert("Success: ", data);
         });
+    },
+    onChange(e) {
+      this.setFileType = true;
     }
   }
 };
@@ -76,6 +89,12 @@ form label {
   text-align: left;
   padding-top: 1%;
   margin-bottom: 0 !important;
+}
+.fileselect {
+  display: block;
+  align: left;
+  padding-top: 1%;
+  margin-bottom: 10px !important;
 }
 .move-right {
   margin-left: 1%;

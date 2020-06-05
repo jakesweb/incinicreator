@@ -12,7 +12,7 @@ const AWS = require("aws-sdk");
 const fetch = require("node-fetch");
 
 const corsOptions = {
-  origin: "http://localhost:8080",
+  origin: "http://localhost:8080"
 };
 
 // express configuration
@@ -25,7 +25,7 @@ app.use(cors(corsOptions));
 // auth0 configuration
 const authConfig = {
   domain: process.env.AUTH0_DOMAIN,
-  audience: process.env.AUTH0_AUDIENCE,
+  audience: process.env.AUTH0_AUDIENCE
 };
 
 // define middleware to validate bearer tokens
@@ -34,11 +34,11 @@ const checkJwt = jwt({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 50,
-    jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`,
+    jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`
   }),
   audience: authConfig.audience,
   issuer: `https://${authConfig.domain}/`,
-  algorithm: ["RS256"],
+  algorithm: ["RS256"]
 });
 
 // mongodb config
@@ -54,7 +54,7 @@ const SiteConfigSchema = new Schema({
   webMonetization: String,
   content: String,
   published: Boolean,
-  template: { type: Boolean, default: false },
+  template: { type: Boolean, default: false }
 });
 
 // web site configuration model
@@ -67,7 +67,7 @@ const ContentUploadSchema = new Schema({
   title: String,
   description: String,
   location: String,
-  monetized: Boolean,
+  monetized: Boolean
 });
 
 const ContentUpload = mongoose.model("ContentUpload", ContentUploadSchema);
@@ -77,7 +77,7 @@ mongoose.connect(process.env.MONGO_URI);
 // aws s3 configuration
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_ID,
-  secretAccessKey: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_ACCESS_KEY
 });
 
 // ROUTES
@@ -89,10 +89,10 @@ app.post("/api/setsiteconfig", checkJwt, (req, res) => {
     title: req.body.title,
     customSub: req.body.customSub,
     webMonetization: req.body.webMonetization,
-    content: req.body.content,
+    content: req.body.content
   });
 
-  siteConfig.save((error) => {
+  siteConfig.save(error => {
     if (!error) {
       res.send(JSON.stringify({ message: "success" }));
       // create sanityio dataset for the user
@@ -101,11 +101,11 @@ app.post("/api/setsiteconfig", checkJwt, (req, res) => {
         body: '{\n\t"aclMode": "private"\n}',
         headers: {
           Authorization: `Bearer ${process.env.SANITY_TOKEN}`,
-          "Content-Type": "application/json",
-        },
+          "Content-Type": "application/json"
+        }
       })
-        .then((response) => console.log(response))
-        .then((data) => console.log(data));
+        .then(response => console.log(response))
+        .then(data => console.log(data));
     } else {
       res.send(JSON.stringify({ error: error }));
     }
@@ -123,7 +123,7 @@ app.get("/api/getsiteconfig", checkJwt, (req, res) => {
           customSub: site.customSub,
           webMonetization: site.webMonetization,
           content: site.config,
-          published: site.published,
+          published: site.published
         })
       );
     } else {
@@ -132,7 +132,7 @@ app.get("/api/getsiteconfig", checkJwt, (req, res) => {
   });
 });
 
-app.post("/api/uploadfile", checkJwt, (req, res) => {
+app.post("/api/uploadimage", checkJwt, (req, res) => {
   let title = null,
     description = null,
     monetization = false;
@@ -154,22 +154,23 @@ app.post("/api/uploadfile", checkJwt, (req, res) => {
   });
 
   req.busboy.on("file", (fields, file, filename) => {
-    fetch("https://myProjectId.api.sanity.io/v1/images/myDataset", {
+    fetch("https://cxh0b0lr.api.sanity.io/v1/images/myDataset", {
       body: file,
       headers: {
-        "Content-Type": "image/jpeg",
+        Authorization: `Bearer ${process.env.SANITY_TOKEN}`,
+        "Content-Type": "image/jpeg"
       },
-      method: "POST",
-    }).then((data) => {
+      method: "POST"
+    }).then(data => {
       const contentUpload = new ContentUpload({
         user: req.user.sub,
         title: title,
         description: description,
         monetized: monetization,
-        location: data.url,
+        location: data.url
       });
 
-      contentUpload.save((error) => {
+      contentUpload.save(error => {
         if (error) {
           console.log(error);
         }
